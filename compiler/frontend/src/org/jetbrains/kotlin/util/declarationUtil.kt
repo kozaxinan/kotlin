@@ -35,18 +35,22 @@ val KtDeclaration.isOrdinaryClass
 val KtDeclaration.isAnnotated get() = this.annotationEntries.isNotEmpty()
 
 /**
+ * Given a fake override, returns an overridden non-abstract function which is the actual implementation of this function
+ * that should be called when the given fake override is called.
+ */
+fun findImplementation(descriptor: CallableMemberDescriptor): CallableMemberDescriptor? {
+    val overridden = OverridingUtil.getOverriddenDeclarations(descriptor)
+    val filtered = OverridingUtil.filterOutOverridden(overridden)
+
+    return filtered.firstOrNull { it.modality != Modality.ABSTRACT }
+}
+
+/**
  * Given a fake override, returns an overridden non-abstract function from an interface which is the actual implementation of this function
  * that should be called when the given fake override is called.
  */
 fun findImplementationFromInterface(descriptor: CallableMemberDescriptor): CallableMemberDescriptor? {
-    val overridden = OverridingUtil.getOverriddenDeclarations(descriptor)
-    val filtered = OverridingUtil.filterOutOverridden(overridden)
-
-    val result = filtered.firstOrNull { it.modality != Modality.ABSTRACT } ?: return null
-
-    if (DescriptorUtils.isClassOrEnumClass(result.containingDeclaration)) return null
-
-    return result
+    return findImplementation(descriptor)?.takeIf { !DescriptorUtils.isClassOrEnumClass(it.containingDeclaration) }
 }
 
 /**

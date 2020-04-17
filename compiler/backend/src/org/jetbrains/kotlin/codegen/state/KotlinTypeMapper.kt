@@ -54,10 +54,7 @@ import org.jetbrains.kotlin.resolve.bindingContextUtil.isUsedAsExpression
 import org.jetbrains.kotlin.resolve.calls.model.DefaultValueArgument
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.VarargValueArgument
-import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
-import org.jetbrains.kotlin.resolve.descriptorUtil.classId
-import org.jetbrains.kotlin.resolve.descriptorUtil.isPublishedApi
-import org.jetbrains.kotlin.resolve.descriptorUtil.module
+import org.jetbrains.kotlin.resolve.descriptorUtil.*
 import org.jetbrains.kotlin.resolve.jvm.AsmTypes.DEFAULT_CONSTRUCTOR_MARKER
 import org.jetbrains.kotlin.resolve.jvm.AsmTypes.OBJECT_TYPE
 import org.jetbrains.kotlin.resolve.jvm.JvmClassName
@@ -73,6 +70,7 @@ import org.jetbrains.kotlin.types.checker.convertVariance
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingUtils.*
 import org.jetbrains.kotlin.types.model.*
 import org.jetbrains.kotlin.util.OperatorNameConventions
+import org.jetbrains.kotlin.util.findImplementation
 import org.jetbrains.org.objectweb.asm.Opcodes.*
 import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.commons.Method
@@ -1498,17 +1496,39 @@ class KotlinTypeMapper @JvmOverloads constructor(
         }
 
         //NB: similar platform agnostic code in DescriptorUtils.unwrapFakeOverride
-        private fun findSuperDeclaration(descriptor: FunctionDescriptor, isSuperCall: Boolean, jvmDefaultMode: JvmDefaultMode): FunctionDescriptor {
+        private fun findSuperDeclaration(
+            descriptor: FunctionDescriptor,
+            isSuperCall: Boolean,
+            jvmDefaultMode: JvmDefaultMode
+        ): FunctionDescriptor {
+            //NB: we also can try to generate non-super virtual calls to most specific (possibly abstract) declaration
+            val mostSpecificDeclarationForSuperCall = if (isSuperCall) {
+                (if (descriptor.kind.isReal) descriptor else findImplementation(descriptor) as? FunctionDescriptor)?.also {
+                    // If most specific overrides declared in class return it otherwise it could be more specific synthetic override...
+                    if (!isJvmInterface(it.containingDeclaration)) return it
+                    //...if there is no additional synthetic override in class return most specific declaration as is...
+                    if (isMethodOfAny(it) || it.isCompiledToJvmDefault(jvmDefaultMode)) return it
+                    //..otherwise we should try to find this synthetic override...
+                }
+            } else null
+
             var current = descriptor
-            while (current.kind == CallableMemberDescriptor.Kind.FAKE_OVERRIDE) {
+            while (!current.kind.isReal) {
                 val classCallable = current.overriddenDescriptors.firstOrNull { !isInterface(it.containingDeclaration) }
-                if (classCallable != null) {
+                if (classCallable != null && (!isSuperCall || OverridingUtil.overrides(
+                        classCallable, mostSpecificDeclarationForSuperCall
+                            ?: error("More specific non-abstract declaration for super call doesn't exists for $descriptor"),
+                        classCallable.module.isTypeRefinementEnabled(), true
+                    ))
+                ) {
                     //prefer class callable cause of else branch
                     current = classCallable
                     continue
                 }
-                if (isSuperCall && !current.isCompiledToJvmDefault(jvmDefaultMode) && !isInterface(current.containingDeclaration)) {
-                    //Don't unwrap fake overrides from class to interface cause substituted override would be implicitly generated
+
+                if (isSuperCall && !isInterface(current.containingDeclaration)) {
+                    //..overrides for most specific declaration doesn't come from super class so it comes from one of super interfaces.
+                    // This means there would be synthetic declaration in class for `current`
                     return current
                 }
 
