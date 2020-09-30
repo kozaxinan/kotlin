@@ -1771,6 +1771,11 @@ public class IrTextTestCaseGenerated extends AbstractIrTextTestCase {
             runTest("compiler/testData/ir/irText/firProblems/InnerClassInAnonymous.kt");
         }
 
+        @TestMetadata("MultiList.kt")
+        public void testMultiList() throws Exception {
+            runTest("compiler/testData/ir/irText/firProblems/MultiList.kt");
+        }
+
         @TestMetadata("putIfAbsent.kt")
         public void testPutIfAbsent() throws Exception {
             runTest("compiler/testData/ir/irText/firProblems/putIfAbsent.kt");
