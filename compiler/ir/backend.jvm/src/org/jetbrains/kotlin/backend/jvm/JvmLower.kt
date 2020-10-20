@@ -390,7 +390,7 @@ val jvmPhases = NamedCompilerPhase(
             processOptionalAnnotationsPhase then
             expectDeclarationsRemovingPhase then
             fileClassPhase then
-            performByIrFile(lower = jvmFilePhases) then
+            performByIrFileParallel(lower = jvmFilePhases) then
             generateMultifileFacadesPhase then
             resolveInlineCallsPhase then
             // should be last transformation
