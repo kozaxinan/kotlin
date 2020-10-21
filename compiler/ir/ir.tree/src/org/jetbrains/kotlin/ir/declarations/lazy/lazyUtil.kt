@@ -18,13 +18,15 @@ private class UnsafeLazyVar<T>(initializer: () -> T) : ReadWriteProperty<Any?, T
 
     private val value: T
         get() {
-            if (!isInitialized) {
-                withInitialIr { _value = initializer!!() }
-                isInitialized = true
-                initializer = null
+            synchronized(this) {
+                if (!isInitialized) {
+                    withInitialIr { _value = initializer!!() }
+                    isInitialized = true
+                    initializer = null
+                }
+                @Suppress("UNCHECKED_CAST")
+                return _value as T
             }
-            @Suppress("UNCHECKED_CAST")
-            return _value as T
         }
 
     override fun toString(): String = if (isInitialized) value.toString() else "Lazy value not initialized yet."
