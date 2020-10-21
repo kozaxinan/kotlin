@@ -40,6 +40,7 @@ data class CallInfo(
     val argumentList: FirArgumentList,
     val isPotentialQualifierPart: Boolean,
     val isImplicitInvoke: Boolean,
+    val isAssignment: Boolean,
 
     val typeArguments: List<FirTypeProjection>,
     val session: FirSession,

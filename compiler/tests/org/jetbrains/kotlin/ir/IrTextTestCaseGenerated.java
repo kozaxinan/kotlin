@@ -1790,6 +1790,11 @@ public class IrTextTestCaseGenerated extends AbstractIrTextTestCase {
         public void testV8ArrayToList() throws Exception {
             runTest("compiler/testData/ir/irText/firProblems/V8ArrayToList.kt");
         }
+
+        @TestMetadata("VarInInit.kt")
+        public void testVarInInit() throws Exception {
+            runTest("compiler/testData/ir/irText/firProblems/VarInInit.kt");
+        }
     }
 
     @TestMetadata("compiler/testData/ir/irText/lambdas")

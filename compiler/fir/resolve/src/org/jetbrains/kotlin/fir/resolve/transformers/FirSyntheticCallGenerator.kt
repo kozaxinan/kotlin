@@ -186,6 +186,7 @@ class FirSyntheticCallGenerator(
         argumentList = argumentList,
         isPotentialQualifierPart = false,
         isImplicitInvoke = false,
+        isAssignment = false,
         typeArguments = emptyList(),
         session = session,
         containingFile = components.file,

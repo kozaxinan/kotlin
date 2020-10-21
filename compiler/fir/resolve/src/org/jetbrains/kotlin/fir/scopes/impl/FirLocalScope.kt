@@ -22,31 +22,36 @@ import org.jetbrains.kotlin.name.Name
 class FirLocalScope private constructor(
     val properties: PersistentMap<Name, FirVariableSymbol<*>>,
     val functions: PersistentMultimap<Name, FirFunctionSymbol<*>>,
-    val classes: PersistentMap<Name, FirRegularClassSymbol>
+    val classes: PersistentMap<Name, FirRegularClassSymbol>,
+    val isPrimaryConstructorScope: Boolean
 ) : FirScope(), FirContainingNamesAwareScope {
-    constructor() : this(persistentMapOf(), PersistentMultimap(), persistentMapOf())
+    constructor(isPrimaryConstructorScope: Boolean = false) : this(
+        persistentMapOf(), PersistentMultimap(), persistentMapOf(), isPrimaryConstructorScope
+    )
 
     fun storeClass(klass: FirRegularClass): FirLocalScope {
         return FirLocalScope(
-            properties, functions, classes.put(klass.name, klass.symbol)
+            properties, functions, classes.put(klass.name, klass.symbol), isPrimaryConstructorScope
         )
     }
 
     fun storeFunction(function: FirSimpleFunction): FirLocalScope {
         return FirLocalScope(
-            properties, functions.put(function.name, function.symbol as FirNamedFunctionSymbol), classes
+            properties, functions.put(function.name, function.symbol as FirNamedFunctionSymbol),
+            classes, isPrimaryConstructorScope
         )
     }
 
     fun storeVariable(variable: FirVariable<*>): FirLocalScope {
         return FirLocalScope(
-            properties.put(variable.name, variable.symbol), functions, classes
+            properties.put(variable.name, variable.symbol), functions, classes, isPrimaryConstructorScope
         )
     }
 
     fun storeBackingField(property: FirProperty): FirLocalScope {
         return FirLocalScope(
-            properties.put(NAME_FOR_BACKING_FIELD, property.backingFieldSymbol), functions, classes
+            properties.put(NAME_FOR_BACKING_FIELD, property.backingFieldSymbol), functions,
+            classes, isPrimaryConstructorScope
         )
     }
 

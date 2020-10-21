@@ -45,6 +45,7 @@ abstract class AbstractCandidateInfoProvider(
             containingFile = firFile,
             isPotentialQualifierPart = false,
             isImplicitInvoke = false,
+            isAssignment = false,
             session = firSession,
         )
     }

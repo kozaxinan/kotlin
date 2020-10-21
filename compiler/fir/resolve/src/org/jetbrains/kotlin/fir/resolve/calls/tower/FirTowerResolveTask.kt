@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.fir.scopes.FakeOverrideTypeCalculator
 import org.jetbrains.kotlin.fir.scopes.FirCompositeScope
 import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction
+import org.jetbrains.kotlin.fir.scopes.impl.FirLocalScope
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.impl.FirImplicitBuiltinTypeRef
 import org.jetbrains.kotlin.name.Name
@@ -260,6 +261,10 @@ internal open class FirTowerResolveTask(
 
         enumerateTowerLevels(
             onScope = l@{ scope, group ->
+                if (info.isAssignment && scope is FirLocalScope && scope.isPrimaryConstructorScope) {
+                    emptyScopes += scope
+                    return@l
+                }
                 // NB: this check does not work for variables
                 // because we do not search for objects if we have extension receiver
                 if (info.callKind != CallKind.VariableAccess && scope in emptyScopes) return@l

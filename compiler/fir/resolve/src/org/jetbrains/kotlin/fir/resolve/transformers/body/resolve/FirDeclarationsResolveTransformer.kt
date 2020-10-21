@@ -860,7 +860,7 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
     }
 
     private fun FirConstructor.scopeWithParameters(): FirLocalScope {
-        return valueParameters.fold(FirLocalScope()) { acc, param -> acc.storeVariable(param) }
+        return valueParameters.fold(FirLocalScope(this.isPrimary)) { acc, param -> acc.storeVariable(param) }
     }
 
     protected inline fun <T> withLabelAndReceiverType(
