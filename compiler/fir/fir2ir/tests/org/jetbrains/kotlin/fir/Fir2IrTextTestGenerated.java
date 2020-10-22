@@ -1752,6 +1752,11 @@ public class Fir2IrTextTestGenerated extends AbstractFir2IrTextTest {
             runTest("compiler/testData/ir/irText/firProblems/ClashResolutionDescriptor.kt");
         }
 
+        @TestMetadata("ConsumeRestOfQuotedSequence.kt")
+        public void testConsumeRestOfQuotedSequence() throws Exception {
+            runTest("compiler/testData/ir/irText/firProblems/ConsumeRestOfQuotedSequence.kt");
+        }
+
         @TestMetadata("DeepCopyIrTree.kt")
         public void testDeepCopyIrTree() throws Exception {
             runTest("compiler/testData/ir/irText/firProblems/DeepCopyIrTree.kt");
