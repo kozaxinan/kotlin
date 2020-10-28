@@ -45,6 +45,9 @@ class KotlinScopeProvider(
                     val symbol = useSiteSuperType.lookupTag.toSymbol(useSiteSession)
                     if (symbol is FirRegularClassSymbol) {
                         val delegateField = delegateFields.find { it.returnTypeRef.coneType == useSiteSuperType }
+                        if (delegateField != null) {
+                            println()
+                        }
                         symbol.fir.scopeForSupertype(
                             substitutor(symbol, useSiteSuperType, useSiteSession),
                             useSiteSession, scopeSession, delegateField,
