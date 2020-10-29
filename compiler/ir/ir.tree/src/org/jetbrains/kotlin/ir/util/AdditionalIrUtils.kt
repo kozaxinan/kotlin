@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.ir.util
 
+import com.intellij.psi.CommonClassNames
 import com.intellij.util.containers.SLRUCache
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
@@ -245,3 +246,7 @@ fun IrClassSymbol.getPropertySetter(name: String): IrSimpleFunctionSymbol? = own
 
 inline fun MemberScope.findFirstFunction(name: String, predicate: (CallableMemberDescriptor) -> Boolean) =
     getContributedFunctions(Name.identifier(name), NoLookupLocation.FROM_BACKEND).first(predicate)
+
+fun filterOutAnnotations(fqName: FqName, annotations: List<IrConstructorCall>): List<IrConstructorCall> {
+    return annotations.filterNot { it.annotationClass.hasEqualFqName(fqName) }
+}

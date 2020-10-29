@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.backend.jvm.codegen.MethodSignatureMapper
 import org.jetbrains.kotlin.backend.jvm.codegen.isJvmInterface
 import org.jetbrains.kotlin.backend.jvm.ir.copyCorrespondingPropertyFrom
 import org.jetbrains.kotlin.backend.jvm.ir.replaceThisByStaticReference
+import org.jetbrains.kotlin.backend.jvm.lower.JAVA_LANG_DEPRECATED
 import org.jetbrains.kotlin.builtins.CompanionObjectMapping
 import org.jetbrains.kotlin.builtins.isMappedIntrinsicCompanionObjectClassId
 import org.jetbrains.kotlin.config.LanguageFeature
@@ -131,6 +132,14 @@ class JvmCachedDeclarations(
                     ?.replaceThisByStaticReference(this@JvmCachedDeclarations, oldParent, oldParent.thisReceiver!!)
                     ?.patchDeclarationParents(this) as IrExpressionBody?
                 origin = if (irProperty.parentAsClass.isCompanion) JvmLoweredDeclarationOrigin.COMPANION_PROPERTY_BACKING_FIELD else origin
+                if (oldParent != parent && oldParent.visibility == DescriptorVisibilities.PRIVATE) {
+                    context.createIrBuilder(this.symbol).run {
+                        annotations = filterOutAnnotations(
+                            JAVA_LANG_DEPRECATED,
+                            annotations
+                        ) + irCall(this@JvmCachedDeclarations.context.ir.symbols.javaLangDeprecatedConstructorWithDeprecatedFlag)
+                    }
+                }
             }
         }
     }
@@ -183,7 +192,7 @@ class JvmCachedDeclarations(
                     !it.annotations.hasAnnotation(DeprecationResolver.JAVA_DEPRECATED)
                 ) {
                     this@JvmCachedDeclarations.context.createIrBuilder(it.symbol).run {
-                        it.annotations += irCall(this@JvmCachedDeclarations.context.ir.symbols.javaLangDeprecatedConstructor)
+                        it.annotations += irCall(this@JvmCachedDeclarations.context.ir.symbols.javaLangDeprecatedConstructorWithDeprecatedFlag)
                     }
                 }
 

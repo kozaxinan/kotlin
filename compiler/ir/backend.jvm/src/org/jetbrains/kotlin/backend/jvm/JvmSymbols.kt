@@ -208,12 +208,12 @@ class JvmSymbols(
             klass.addFunction("desiredAssertionStatus", irBuiltIns.booleanType)
         }
 
-    private val javaLangDeprecated: IrClassSymbol =
+    private val javaLangDeprecatedWithDeprecatedFlag: IrClassSymbol =
         createClass(FqName("java.lang.Deprecated")) { klass ->
             klass.addConstructor { isPrimary = true }
         }
 
-    val javaLangDeprecatedConstructor = javaLangDeprecated.constructors.single()
+    val javaLangDeprecatedConstructorWithDeprecatedFlag = javaLangDeprecatedWithDeprecatedFlag.constructors.single()
 
     private val javaLangAssertionError: IrClassSymbol =
         createClass(FqName("java.lang.AssertionError"), classModality = Modality.OPEN) { klass ->
